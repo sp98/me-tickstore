@@ -3,7 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/sp98/tickstore/pkg/apis/v1/basicauth"
 	"github.com/sp98/tickstore/pkg/apis/v1/stocks"
 
 	"github.com/go-chi/chi"
@@ -11,6 +13,20 @@ import (
 	"github.com/go-chi/render"
 	"github.com/sp98/tickstore/pkg/apis/v1/ohlc"
 )
+
+var (
+	userName string
+	password string
+)
+
+func init() {
+	userName = os.Getenv("API_USER_NAME")
+	password = os.Getenv("API_PASSWORD")
+	if userName == "" && password == "" {
+		log.Fatal("failed to read the API username and password")
+		panic(1)
+	}
+}
 
 //Routes define all the global routes.
 func Routes() *chi.Mux {
@@ -21,6 +37,9 @@ func Routes() *chi.Mux {
 		middleware.DefaultCompress, // Compress results, mostly gzipping assets and json
 		middleware.RedirectSlashes, // Redirect slashes to no slash URL versions
 		middleware.Recoverer,       // Recover from panics without crashing server
+		basicauth.New("TICKSTORE", map[string][]string{
+			userName: {password},
+		}),
 	)
 
 	router.Route("/v1", func(r chi.Router) {

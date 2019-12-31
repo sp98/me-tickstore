@@ -3,6 +3,7 @@ package store
 import (
 	"fmt"
 	"log"
+	"time"
 
 	client "github.com/orourkedd/influxdb1-client/client"
 )
@@ -56,7 +57,7 @@ func (db DB) GetDailyOHCL() (*client.Response, error) {
 	dbClient, _ := db.GetClient()
 	defer dbClient.Close()
 	query := client.Query{
-		Command:  fmt.Sprintf(dailyOHLCQuery, db.Measurement),
+		Command:  fmt.Sprintf(dailyOHLCQuery, db.Measurement, time.Now().Format("2006-01-02")),
 		Database: db.Name,
 	}
 	response, err := db.executeQuery(query)

@@ -21,8 +21,8 @@ var (
 )
 
 func init() {
-	DBUrl = os.Getenv("DB_URL")
-	DBName = os.Getenv("DB_NAME")
+	DBUrl = os.Getenv("INFLUX_DB_URL")
+	DBName = os.Getenv("TICK_STORE_DB_NAME")
 }
 
 const (
@@ -37,6 +37,7 @@ type Result map[string]StockDetails
 type StockDetails struct {
 	Name              string  `json:"Name"`
 	Symbol            string  `json:"Symnbol"`
+	Token             string  `json:"Token"`
 	Exchange          string  `json:"Exchange"`
 	LastPrice         float64 `json:"LastPrice"`
 	AverageTradePrice float64 `json:"AverageTradePrice"`
@@ -83,7 +84,8 @@ func GetStockDetails(w http.ResponseWriter, r *http.Request) {
 					sd.Close, _ = strconv.ParseFloat(fmt.Sprintf("%v", row[8]), 64)
 					sd.Name = stock[0]
 					sd.Symbol = stock[1]
-					sd.Exchange = stock[2]
+					sd.Token = stock[2]
+					sd.Exchange = stock[3]
 				}
 			}
 
@@ -93,7 +95,6 @@ func GetStockDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3002")
-	//w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")

@@ -27,8 +27,8 @@ type OHLC struct {
 }
 
 func init() {
-	DBUrl = os.Getenv("DB_URL")
-	DBName = os.Getenv("DB_NAME")
+	DBUrl = os.Getenv("INFLUX_DB_URL")
+	DBName = os.Getenv("TICK_STORE_DB_NAME")
 }
 
 //Routes define the OHCL routes
@@ -42,16 +42,18 @@ func Routes() *chi.Mux {
 func GetOHLC(w http.ResponseWriter, r *http.Request) {
 	token := chi.URLParam(r, "token")
 	interval := chi.URLParam(r, "interval")
-	ohlc := getTicks(token, interval)
+	from := r.URL.Query().Get("from")
+	to := r.URL.Query().Get("to")
+	ohlc := getTicks(token, interval, from, to)
 
 	render.JSON(w, r, ohlc) // A chi router helper for serializing and returning json
 }
 
-func getTicks(token, interval string) []OHLC {
+func getTicks(token, interval, from, to string) []OHLC {
 
 	db := store.NewDB(DBUrl, DBName, "")
 	db.Measurement = fmt.Sprintf("%s_%s_%s", "ticks", token, interval)
-	response, _ := db.GetDailyOHCL()
+	response, _ := db.GetDailyOHCL(from, to)
 	var ohlcList []OHLC
 	for _, results := range response.Results {
 		for _, rows := range results.Series {

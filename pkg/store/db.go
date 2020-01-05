@@ -53,11 +53,17 @@ func (db DB) executeQuery(query client.Query) (*client.Response, error) {
 }
 
 //GetDailyOHCL fetches OHLC data for today
-func (db DB) GetDailyOHCL() (*client.Response, error) {
+func (db DB) GetDailyOHCL(from, to string) (*client.Response, error) {
 	dbClient, _ := db.GetClient()
 	defer dbClient.Close()
+	var cmd string
+	if from != "" && to != "" {
+		cmd = fmt.Sprintf(timedOHLCQuery, db.Measurement, from, to)
+	} else {
+		cmd = fmt.Sprintf(dailyOHLCQuery, db.Measurement, time.Now().Format("2006-01-02"))
+	}
 	query := client.Query{
-		Command:  fmt.Sprintf(dailyOHLCQuery, db.Measurement, time.Now().Format("2006-01-02")),
+		Command:  cmd,
 		Database: db.Name,
 	}
 	response, err := db.executeQuery(query)

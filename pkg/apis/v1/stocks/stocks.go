@@ -21,8 +21,8 @@ var (
 )
 
 func init() {
-	DBUrl = os.Getenv("DB_URL")
-	DBName = os.Getenv("DB_NAME")
+	DBUrl = os.Getenv("INFLUX_DB_URL")
+	DBName = os.Getenv("TICK_STORE_DB_NAME")
 }
 
 const (

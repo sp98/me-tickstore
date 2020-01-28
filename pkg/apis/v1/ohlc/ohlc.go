@@ -20,6 +20,7 @@ var (
 
 //OHLC is the open, high, low and close prices
 type OHLC struct {
+	Time  string  `json:"Time"`
 	Open  float64 `json:"Open"`
 	High  float64 `json:"High"`
 	Low   float64 `json:"Low"`
@@ -59,6 +60,7 @@ func getTicks(token, interval, from, to string) []OHLC {
 		for _, rows := range results.Series {
 			ohlc := &OHLC{}
 			for _, row := range rows.Values {
+				ohlc.Time = fmt.Sprintf("%v", row[0])
 				ohlc.Close, _ = strconv.ParseFloat(fmt.Sprintf("%v", row[1]), 64)
 				ohlc.High, _ = strconv.ParseFloat(fmt.Sprintf("%v", row[2]), 64)
 				ohlc.Low, _ = strconv.ParseFloat(fmt.Sprintf("%v", row[3]), 64)

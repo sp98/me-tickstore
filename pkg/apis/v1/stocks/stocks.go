@@ -2,6 +2,7 @@ package stocks
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -27,7 +28,9 @@ func init() {
 
 const (
 	//StocksEnv is the enviornment variable to get all the stocks.
-	StocksEnv = "STOCKS"
+	StocksEnv          = "STOCKS"
+	MarketOpenTime     = "%s 9:00:00"
+	PreMarketCloseTime = "%s 9:15:00"
 )
 
 //Result stores the final response for all the stocks
@@ -66,7 +69,17 @@ func GetStockDetails(w http.ResponseWriter, r *http.Request) {
 	for _, stock := range stocks {
 		token := stock[2]
 		db := store.NewDB(DBUrl, DBName, "")
-		db.Measurement = fmt.Sprintf("%s_%s", "ticks", token)
+		isPreMarketOpenTime, err := utility.IsWithInTimeRange(MarketOpenTime, PreMarketCloseTime)
+		if err != nil {
+			log.Fatalf("error checking pre-market-open time. %+v", err)
+			isPreMarketOpenTime = false
+		}
+		if isPreMarketOpenTime {
+			db.Measurement = fmt.Sprintf("%s_%s_%s", "ticks", token, "pmo")
+		} else {
+			db.Measurement = fmt.Sprintf("%s_%s", "ticks", token)
+		}
+
 		// Order of Response - LastPrice TotalBuy TotalSell Open High Low Close
 		response, _ := db.GetStockDetails()
 		sd := StockDetails{}
@@ -95,6 +108,7 @@ func GetStockDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Access-Control-Allow-Origin", "https://marketmoz.com")
+	//w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3002")
 	//w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Accept-Language, Content-Length, Accept-Encoding, X-CSRF-Token")
